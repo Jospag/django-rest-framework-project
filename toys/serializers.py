@@ -21,3 +21,4 @@ class ToySerializer(serializers.Serializer):
         instance.toy_category = validate_date.get('toy_category', instance.toy_category)
         instance.was_included_in_home = validate_date.get('was_included_in_home', instance.was_included_in_home)
         instance.save()
+        return instance
