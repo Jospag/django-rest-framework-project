@@ -1,10 +1,6 @@
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from toys.models import Toy
 from toys.serializers import ToySerializer
@@ -43,6 +39,9 @@ def toy_detail(request, pk):
     elif request.method == 'DELETE':
         toy.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
 # class JSONResponse(HttpResponse):
 #     def __init__(self, data, **kwargs):
 #         content = JSONRenderer().render(data)
