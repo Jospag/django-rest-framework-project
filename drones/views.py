@@ -1,9 +1,14 @@
 from django.shortcuts import render
 from django_filters import DateTimeFilter, NumberFilter, AllValuesFilter
-from django_filters  import filters
+from django_filters import filters
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.reverse import reverse
+from rest_framework import permissions
+
+from drones import custompermission
 from drones.models import DroneCategory, Drone, Pilot, Competition
 from drones.serializer import DroneCategorySerializer, DroneSerializer, PilotSerializer, PilotCompetitionSerializer
 
@@ -23,7 +28,6 @@ class DroneCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     name = 'dronecategory-detail'
 
 
-
 class DroneList(generics.ListCreateAPIView):
     queryset = Drone.objects.all()
     serializer_class = DroneSerializer
@@ -36,12 +40,17 @@ class DroneList(generics.ListCreateAPIView):
     )
     search_fields = ('^name',)
     ordering_fields = ('name', 'manufacturing_date',)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, custompermission.IsCurrentUserOwnerOrReadOnly,)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class DroneDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Drone
     serializer_class = DroneSerializer
     name = 'drone-detail'
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, custompermission.IsCurrentUserOwnerOrReadOnly,)
 
 
 class PilotList(generics.ListCreateAPIView):
@@ -55,15 +64,20 @@ class PilotList(generics.ListCreateAPIView):
     )
     search_fields = ('^name',)
     ordering_fields = ('name', 'races_count',)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
 
 class PilotDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Pilot.objects.all()
     serializer_class = PilotSerializer
     name = 'pilot-detail'
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
 
 class CompetitionFilter(filters.Filter):
-    from_achievement_date = DateTimeFilter(name= 'distance_achievement_date', lookup_expr='gte')
+    from_achievement_date = DateTimeFilter(name='distance_achievement_date', lookup_expr='gte')
     to_achievement_date = DateTimeFilter(name='distance_achievement_date', lookup_expr='lte')
     min_distance_in_feet = NumberFilter(name='distance_in_feet', lookup_expr='gte')
     max_distance_in_feet = NumberFilter(name='distance_in_feet', lookup_expr='lte')
@@ -72,7 +86,7 @@ class CompetitionFilter(filters.Filter):
 
     class Meta:
         model = Competition
-        fields =(
+        fields = (
             'distance_in_feet',
             'from_achievement_date',
             'to_achievement_date',
