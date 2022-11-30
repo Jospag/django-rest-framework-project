@@ -17,6 +17,9 @@ Including another URLconf
 from django.urls import include, re_path
 # from django.conf.urls import url
 urlpatterns = [
+    re_path(r'^', include('drones.urls')),
+    re_path(r'^api-auth/', include('rest_framework.urls')),
+
     # path('admin/', admin.site.urls),
     # re_path(r'^', include('toys.urls')),
 ]
